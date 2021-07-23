@@ -8,6 +8,7 @@ public class Player_Controller : MonoBehaviour
     Animator anim;
     Rigidbody rb;
     bool isGround;
+    bool isJump,canJump;
     public Transform tranformBody;
     float inputHorizontal, inputVertical;
 
@@ -33,36 +34,43 @@ public class Player_Controller : MonoBehaviour
     void Update()
     {
         RayForGround();
-        Animations();
         DetectInput();
+        Animations();
+        
 
     }
     public void RayForGround()
     {
-        isGround = Physics.Raycast(tranformBody.position, Vector3.down, 3, 1 << 8);
-        Debug.DrawRay(tranformBody.position, Vector3.down*3,Color.red);
+        isGround = Physics.Raycast(tranformBody.position, Vector3.down, 0.7f, 1 << 8);
+        Debug.DrawRay(tranformBody.position, Vector3.down*0.7f,Color.red);
     }
 
-    public void Animations() {
-
-        anim.SetFloat("SpeedY", rb.velocity.y);
-        anim.SetFloat("SpeedXyZ", Mathf.Abs(inputVertical) + Mathf.Abs(inputHorizontal));
-        anim.SetBool("IsGround", isGround);
-       
-    }
-
-    public void DetectInput() {
+    public void DetectInput()
+    {
 
         inputHorizontal = Input.GetAxisRaw("Horizontal");
         inputVertical = Input.GetAxisRaw("Vertical");
+        if (Input.GetButtonDown("Jump") && isGround)
+            canJump = true;
+
     }
+
+    public void Animations() {
+        
+        anim.SetFloat("SpeedY", rb.velocity.y);        
+        anim.SetFloat("SpeedXyZ", Mathf.Abs(inputVertical = inputHorizontal));               
+        anim.SetBool("IsGround", isGround);
+        
+    }
+
+    
 
 
     private void FixedUpdate()
     {
 
         ChangeRotation();
-        
+        JumpMovement();
         
     }
 
@@ -78,10 +86,20 @@ public class Player_Controller : MonoBehaviour
         }
     }
 
-    public void PlayerMovement() {
+    public void JumpMovement() {
+        if (canJump) {
+            anim.SetTrigger("Jump");
+            rb.AddForce(new Vector3(inputHorizontal * 4, 10, inputVertical * 4), ForceMode.Impulse);
+            canJump = false;
+        }
+    }
 
-        rb.AddForce( new Vector3(inputHorizontal * 4,3,inputVertical*4),ForceMode.Impulse );
-        
+    public void PlayerMovement() {
+        if (!canJump) {
+
+            rb.AddForce(new Vector3(inputHorizontal * 5, 5, inputVertical * 5), ForceMode.Impulse);
+
+        }
 
     }
 
